@@ -15,6 +15,7 @@ import com.wix.detox.reactnative.idlingresources.looper.MQThreadsReflector
 import com.wix.detox.reactnative.idlingresources.network.NetworkIdlingResource
 import kotlinx.coroutines.runBlocking
 import org.joor.Reflect
+import org.json.JSONArray
 import java.util.concurrent.ConcurrentHashMap
 
 private const val LOG_TAG = "DetoxRNIdleRes"
@@ -170,9 +171,28 @@ class ReactNativeIdlingResources(
     }
 
     private fun toFormattedUrlArray(urlList: String): List<String> {
+        parseUrlBlacklistJsonArray(urlList)?.let {
+            return it
+        }
+
         var formattedUrls = urlList
         formattedUrls = formattedUrls.replace(Regex("""[()"]"""), "")
         formattedUrls = formattedUrls.trim()
         return formattedUrls.split(',')
+    }
+
+    private fun parseUrlBlacklistJsonArray(urlList: String): List<String>? {
+        val trimmedUrlList = urlList.trim()
+        if (!trimmedUrlList.startsWith("[")) {
+            return null
+        }
+
+        return try {
+            val jsonArray = JSONArray(trimmedUrlList)
+            List(jsonArray.length()) { index -> jsonArray.getString(index) }
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "Failed to parse URL blacklist as JSON array, falling back to legacy parser", e)
+            null
+        }
     }
 }
