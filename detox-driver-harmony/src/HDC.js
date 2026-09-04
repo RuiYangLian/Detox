@@ -61,6 +61,12 @@ class HDC {
     );
   }
 
+  async fportRm(serial, localPort, remotePort) {
+    return execWithRetriesAndLogs(
+      `${this.binary} -t ${serial} fport rm tcp:${localPort} tcp:${remotePort}`,
+    );
+  }
+
   async getFile(serial, remotePath, localPath) {
     return execWithRetriesAndLogs(
       `${this.binary} -t ${serial} file recv ${remotePath} ${localPath}`,
